@@ -357,12 +357,14 @@ def station_detail(station_code):
         return f"Error loading station: {str(e)}", 500
 
 if __name__ == '__main__':
+    # Get port from environment variable or use default
+    port = int(os.environ.get('PORT', 8080))
     print("=" * 50)
     print("🚀 กำลังเริ่มเว็บแอปพลิเคชัน...")
     print("=" * 50)
     print(f"📊 ฐานข้อมูล: {DB_PATH}")
-    print(f"🌐 เปิดเบราว์เซอร์ที่: http://localhost:8080")
-    print(f"🌐 หรือ: http://127.0.0.1:8080")
+    print(f"🌐 เปิดเบราว์เซอร์ที่: http://localhost:{port}")
+    print(f"🌐 หรือ: http://127.0.0.1:{port}")
     print("=" * 50)
     print("กด Ctrl+C เพื่อหยุดการทำงาน")
     print("=" * 50)
@@ -370,7 +372,7 @@ if __name__ == '__main__':
         # Use threaded=True to handle multiple requests
         # Use 0.0.0.0 to allow connections from all interfaces
         # Port 8080 instead of 5000 (5000 is used by AirPlay on macOS)
-        app.run(debug=True, host='0.0.0.0', port=8080, threaded=True, use_reloader=False)
+        app.run(debug=False, host='0.0.0.0', port=port, threaded=True, use_reloader=False)
     except OSError as e:
         if "Address already in use" in str(e):
             print("\n❌ Error: Port 8080 ถูกใช้งานอยู่แล้ว")
