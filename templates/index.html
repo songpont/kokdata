@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รายการสถานีตรวจสอบ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            padding: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+            min-width: 150px;
+        }
+
+        .stat-card .number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-card .label {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .search-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 20px;
+            font-size: 1em;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .search-box input:focus {
+            border-color: #667eea;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filters select {
+            flex: 1;
+            min-width: 150px;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.9em;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .filters select:focus {
+            border-color: #667eea;
+        }
+
+        .stations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .station-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .station-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+        }
+
+        .station-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .station-code {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .river-name {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .station-info {
+            margin-top: 15px;
+        }
+
+        .info-row {
+            display: flex;
+            margin-bottom: 10px;
+            align-items: flex-start;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #666;
+            min-width: 80px;
+            margin-right: 10px;
+        }
+
+        .info-value {
+            color: #333;
+            flex: 1;
+        }
+
+        .location {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: white;
+            font-size: 1.2em;
+        }
+
+        @media (max-width: 768px) {
+            .stations-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .stats {
+                flex-direction: column;
+            }
+
+            .stat-card {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 รายการสถานีตรวจสอบ</h1>
+            <p>ระบบแสดงข้อมูลสถานีตรวจสอบคุณภาพน้ำและดิน</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="number" id="total-stations">{{ stations|length }}</div>
+                <div class="label">สถานีทั้งหมด</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="unique-rivers">{{ unique_rivers|length }}</div>
+                <div class="label">แม่น้ำ</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="filtered-count">{{ stations|length }}</div>
+                <div class="label">แสดงผล</div>
+            </div>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="🔍 ค้นหาสถานี, แม่น้ำ, หรือตำแหน่งที่ตั้ง...">
+            <div class="filters">
+                <select id="filter-river">
+                    <option value="">ทั้งหมด (แม่น้ำ)</option>
+                    {% for river in unique_rivers %}
+                    <option value="{{ river }}">{{ river }}</option>
+                    {% endfor %}
+                </select>
+                <select id="filter-province">
+                    <option value="">ทั้งหมด (จังหวัด)</option>
+                    {% for province in unique_provinces %}
+                    <option value="{{ province }}">{{ province }}</option>
+                    {% endfor %}
+                </select>
+                <select id="filter-amphoe">
+                    <option value="">ทั้งหมด (อำเภอ)</option>
+                    {% for amphoe in unique_amphoes %}
+                    <option value="{{ amphoe }}">{{ amphoe }}</option>
+                    {% endfor %}
+                </select>
+                <select id="filter-tambon">
+                    <option value="">ทั้งหมด (ตำบล)</option>
+                    {% for tambon in unique_tambons %}
+                    <option value="{{ tambon }}">{{ tambon }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="stations-grid" id="stations-grid">
+            {% for station in stations %}
+            <div class="station-card" 
+                 data-river="{{ station.river }}" 
+                 data-province="{{ station.province }}"
+                 data-amphoe="{{ station.amphoe }}"
+                 data-tambon="{{ station.tambon }}"
+                 data-station="{{ station.station }}"
+                 data-location="{{ station.location }}"
+                 onclick="window.location.href='/station/{{ station.station }}'">
+                <div class="station-header">
+                    <span class="river-name">{{ station.river }}</span>
+                    <span class="station-code">{{ station.station }}</span>
+                </div>
+                <div class="station-info">
+                    <div class="info-row">
+                        <span class="info-label">📍 ตำบล:</span>
+                        <span class="info-value">{{ station.tambon }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">🏛️ อำเภอ:</span>
+                        <span class="info-value">{{ station.amphoe }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">🗺️ จังหวัด:</span>
+                        <span class="info-value">{{ station.province }}</span>
+                    </div>
+                    <div class="location">
+                        <strong>📍 ที่ตั้ง:</strong><br>
+                        {{ station.location }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="no-results" id="no-results" style="display: none;">
+            ไม่พบสถานีที่ค้นหา
+        </div>
+    </div>
+
+    <script>
+        // Location hierarchy data from backend
+        const locationHierarchy = {{ location_hierarchy|tojson }};
+        
+        const searchInput = document.getElementById('search-input');
+        const filterRiver = document.getElementById('filter-river');
+        const filterProvince = document.getElementById('filter-province');
+        const filterAmphoe = document.getElementById('filter-amphoe');
+        const filterTambon = document.getElementById('filter-tambon');
+        const stationsGrid = document.getElementById('stations-grid');
+        const noResults = document.getElementById('no-results');
+        const filteredCount = document.getElementById('filtered-count');
+
+        const stationCards = Array.from(document.querySelectorAll('.station-card'));
+        
+        // Store original options for reset
+        const allAmphoes = [
+            {% for amphoe in unique_amphoes %}
+            "{{ amphoe }}"{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ];
+        const allTambons = [
+            {% for tambon in unique_tambons %}
+            "{{ tambon }}"{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ];
+        
+        // Update Amphoe dropdown based on selected Province
+        function updateAmphoeDropdown() {
+            const selectedProvince = filterProvince.value;
+            const currentValue = filterAmphoe.value;
+            
+            // Clear amphoe dropdown
+            filterAmphoe.innerHTML = '<option value="">ทั้งหมด (อำเภอ)</option>';
+            
+            if (selectedProvince && locationHierarchy[selectedProvince]) {
+                const amphoes = Object.keys(locationHierarchy[selectedProvince]).sort();
+                amphoes.forEach(amphoe => {
+                    const option = document.createElement('option');
+                    option.value = amphoe;
+                    option.textContent = amphoe;
+                    filterAmphoe.appendChild(option);
+                });
+            } else {
+                // If no province selected, show all amphoes
+                allAmphoes.forEach(amphoe => {
+                    const option = document.createElement('option');
+                    option.value = amphoe;
+                    option.textContent = amphoe;
+                    filterAmphoe.appendChild(option);
+                });
+            }
+            
+            // Reset amphoe selection if current value is not in new list
+            if (currentValue && !Array.from(filterAmphoe.options).some(opt => opt.value === currentValue)) {
+                filterAmphoe.value = '';
+            }
+            
+            // Trigger tambon update
+            updateTambonDropdown();
+        }
+        
+        // Update Tambon dropdown based on selected Amphoe
+        function updateTambonDropdown() {
+            const selectedProvince = filterProvince.value;
+            const selectedAmphoe = filterAmphoe.value;
+            const currentValue = filterTambon.value;
+            
+            // Clear tambon dropdown
+            filterTambon.innerHTML = '<option value="">ทั้งหมด (ตำบล)</option>';
+            
+            if (selectedProvince && selectedAmphoe && 
+                locationHierarchy[selectedProvince] && 
+                locationHierarchy[selectedProvince][selectedAmphoe]) {
+                // Show tambons in selected amphoe
+                const tambons = locationHierarchy[selectedProvince][selectedAmphoe];
+                tambons.forEach(tambon => {
+                    const option = document.createElement('option');
+                    option.value = tambon;
+                    option.textContent = tambon;
+                    filterTambon.appendChild(option);
+                });
+            } else if (selectedProvince && locationHierarchy[selectedProvince]) {
+                // If only province selected, show all tambons in that province
+                const allTambonsInProvince = new Set();
+                Object.values(locationHierarchy[selectedProvince]).forEach(tambons => {
+                    tambons.forEach(t => allTambonsInProvince.add(t));
+                });
+                Array.from(allTambonsInProvince).sort().forEach(tambon => {
+                    const option = document.createElement('option');
+                    option.value = tambon;
+                    option.textContent = tambon;
+                    filterTambon.appendChild(option);
+                });
+            } else {
+                // If no filters, show all tambons
+                allTambons.forEach(tambon => {
+                    const option = document.createElement('option');
+                    option.value = tambon;
+                    option.textContent = tambon;
+                    filterTambon.appendChild(option);
+                });
+            }
+            
+            // Reset tambon selection if current value is not in new list
+            if (currentValue && !Array.from(filterTambon.options).some(opt => opt.value === currentValue)) {
+                filterTambon.value = '';
+            }
+        }
+
+        function filterStations() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const selectedRiver = filterRiver.value;
+            const selectedProvince = filterProvince.value;
+            const selectedAmphoe = filterAmphoe.value;
+            const selectedTambon = filterTambon.value;
+
+            let visibleCount = 0;
+
+            stationCards.forEach(card => {
+                const river = card.dataset.river;
+                const province = card.dataset.province;
+                const amphoe = card.dataset.amphoe;
+                const tambon = card.dataset.tambon;
+                const station = card.dataset.station.toLowerCase();
+                const location = card.dataset.location.toLowerCase();
+
+                const matchesSearch = !searchTerm || 
+                    station.includes(searchTerm) || 
+                    river.toLowerCase().includes(searchTerm) ||
+                    location.includes(searchTerm);
+
+                const matchesRiver = !selectedRiver || river === selectedRiver;
+                const matchesProvince = !selectedProvince || province === selectedProvince;
+                const matchesAmphoe = !selectedAmphoe || amphoe === selectedAmphoe;
+                const matchesTambon = !selectedTambon || tambon === selectedTambon;
+
+                if (matchesSearch && matchesRiver && matchesProvince && matchesAmphoe && matchesTambon) {
+                    card.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            filteredCount.textContent = visibleCount;
+
+            if (visibleCount === 0) {
+                noResults.style.display = 'block';
+                stationsGrid.style.display = 'none';
+            } else {
+                noResults.style.display = 'none';
+                stationsGrid.style.display = 'grid';
+            }
+        }
+
+        // Event listeners
+        searchInput.addEventListener('input', filterStations);
+        filterRiver.addEventListener('change', filterStations);
+        
+        filterProvince.addEventListener('change', function() {
+            updateAmphoeDropdown();
+            filterStations();
+        });
+        
+        filterAmphoe.addEventListener('change', function() {
+            updateTambonDropdown();
+            filterStations();
+        });
+        
+        filterTambon.addEventListener('change', filterStations);
+        
+        // Initialize dropdowns on page load
+        updateAmphoeDropdown();
+    </script>
+</body>
+</html>
+

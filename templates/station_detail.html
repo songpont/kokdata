@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รายละเอียดสถานี {{ station.station }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: white;
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .back-button:hover {
+            background: #667eea;
+            color: white;
+            transform: translateX(-5px);
+        }
+
+        .header {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .header .station-code {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .info-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .location-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            line-height: 1.8;
+        }
+
+        .data-section {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .data-section h2 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+            margin-bottom: 20px;
+        }
+
+        .parameter-selector {
+            margin-bottom: 20px;
+        }
+
+        .parameter-selector select {
+            padding: 10px 15px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 1em;
+            background: white;
+            cursor: pointer;
+            outline: none;
+            min-width: 250px;
+        }
+
+        .chart-toggle {
+            display: inline-block;
+            margin-left: 15px;
+            padding: 8px 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background 0.3s;
+        }
+
+        .chart-toggle:hover {
+            background: #5568d3;
+        }
+
+        .chart-toggle.active {
+            background: #764ba2;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-table th:first-child,
+        .data-table td:first-child {
+            min-width: 200px;
+            position: sticky;
+            left: 0;
+            z-index: 5;
+        }
+
+        .data-table th:first-child {
+            z-index: 10;
+        }
+
+        .data-table th:not(:first-child),
+        .data-table td:not(:first-child) {
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .data-table-wrapper {
+            overflow-x: auto;
+            margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .data-table {
+                font-size: 0.9em;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-button">← กลับไปหน้ารายการสถานี</a>
+
+        <div style="background-color: #f8f9fa; padding: 15px; margin-bottom: 20px; border-radius: 8px; border-left: 4px solid #007bff; font-size: 14px; line-height: 1.6;">
+            <strong>ใช้ข้อมูลจาก:</strong> สถานการณ์คุณภาพสิ่งแวดล้อมในแม่น้ำกกและลำน้ำสาขา แม่น้ำสาย แม่น้ำรวก แม่น้ำโขง และผลกระทบกรณีปัญหาสารปนเปื้อนเกินค่ามาตรฐาน ข้อมูล ณ วันที่ 15 ตุลาคม 2568 เวลา 16.30 น. สำนักงานสิ่งแวดล้อมและควบคุมมลพิษที่ 1 (เชียงใหม่)
+        </div>
+
+        <div class="header">
+            <h1>📊 รายละเอียดสถานี</h1>
+            <span class="station-code">{{ station.station }}</span>
+            
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">🌊 แม่น้ำ</div>
+                    <div class="info-value">{{ station.river }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">📍 ตำบล</div>
+                    <div class="info-value">{{ station.tambon }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">🏛️ อำเภอ</div>
+                    <div class="info-value">{{ station.amphoe }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">🗺️ จังหวัด</div>
+                    <div class="info-value">{{ station.province }}</div>
+                </div>
+            </div>
+
+            <div class="location-box">
+                <strong>📍 ที่ตั้ง:</strong><br>
+                {{ station.location }}
+            </div>
+        </div>
+
+        <div class="data-section">
+            <h2>💧 ผลคุณภาพน้ำในแม่น้ำกกและลำน้ำสาขา แม่น้ำสาย แม่น้ำรวก และแม่น้ำโขง</h2>
+            
+            {% if water_data and water_data.pivot %}
+            <div class="chart-container">
+                <div class="parameter-selector">
+                    <select id="water-parameter-select">
+                        <option value="">เลือกสิ่งที่ตรวจเพื่อดูกราฟ</option>
+                        {% for row in water_data.pivot_list %}
+                        <option value="{{ row.parameter }}">{{ row.parameter }} ({{ row.unit }})</option>
+                        {% endfor %}
+                    </select>
+                    <button class="chart-toggle" id="water-chart-toggle" style="display: none;">แสดงกราฟ</button>
+                </div>
+                <div id="water-chart-container" style="display: none;">
+                    <div class="chart-wrapper">
+                        <canvas id="waterChart"></canvas>
+                    </div>
+                    <div style="color: #dc3545; font-weight: 600; margin-top: 10px; padding: 10px; background-color: #fff5f5; border-left: 4px solid #dc3545; border-radius: 4px;">
+                        ⚠️ กรณีที่กราฟแสดงเป็น 0 เนื่องจากค่าน้อยกว่าที่ห้องปฏิบัติการสามารถอ่านผลได้ ให้ดูจากผลในตารางเป็นหลัก
+                    </div>
+                </div>
+            </div>
+            <div class="data-table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>สิ่งที่ตรวจ</th>
+                            {% for check_num in water_data.check_numbers %}
+                            <th>ครั้งที่ {{ check_num }}</th>
+                            {% endfor %}
+                            <th>หน่วย</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in water_data.pivot_list %}
+                        <tr>
+                            <td style="font-weight: 600; background: #f8f9fa;">{{ row.parameter }}</td>
+                            {% for check_num in water_data.check_numbers %}
+                            <td>
+                                {% set check_str = check_num|string %}
+                                {% if check_str in row.check_values %}
+                                    {% set val = row.check_values[check_str] %}
+                                    {% if val %}
+                                        {{ val }}
+                                    {% else %}
+                                        <span style="color: #ccc;">-</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span style="color: #ccc;">-</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                            <td style="background: #f8f9fa; font-weight: 600;">{{ row.unit }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px; font-size: 14px; line-height: 1.8;">
+                <strong>กรมควบคุมมลพิษ</strong> ได้ดำเนินตรวจวัดและเก็บตัวอย่างน้ำในแม่น้ำกกและลำน้ำสาขา แม่น้ำสาย แม่น้ำรวก และแม่น้ำโขง ระหว่างเดือนมีนาคมถึงเดือนกันยายน 2568 ดังนี้<br><br>
+                ▪ ครั้งที่ 1 เมื่อวันที่ 19 - 24 มีนาคม 2568 และวันที่ 9 เมษายน 2568<br>
+                ▪ ครั้งที่ 2 เมื่อวันที่ 21 - 24 เมษายน 2568 และวันที่ 29 เมษายน - 2 พฤษภาคม 2568<br>
+                ▪ ครั้งที่ 3 เมื่อวันที่ 12 - 16 พฤษภาคม 2568<br>
+                ▪ ครั้งที่ 4 เมื่อวันที่ 26 - 30 พฤษภาคม 2568<br>
+                ▪ ครั้งที่ 5 เมื่อวันที่ 9 - 13 มิถุนายน 2568<br>
+                ▪ ครั้งที่ 6 เมื่อวันที่ 23 - 27 มิถุนายน 2568<br>
+                ▪ ครั้งที่ 7 เมื่อวันที่ 30 มิถุนายน - 4 กรกฎาคม 2568<br>
+                ▪ ครั้งที่ 8 เมื่อวันที่ 21 - 25 กรกฎาคม 2568<br>
+                ▪ ครั้งที่ 9 เมื่อวันที่ 4 - 8 สิงหาคม 2568<br>
+                ▪ ครั้งที่ 10 เมื่อวันที่ 18 – 22 สิงหาคม 2568<br>
+                ▪ ครั้งที่ 11 เมื่อวันที่ 1 – 5 กันยายน 2568<br>
+                ▪ ครั้งที่ 12 เมื่อวันที่ 22 – 26 กันยายน 2568
+            </div>
+            {% else %}
+            <div class="no-data">ไม่มีข้อมูลคุณภาพน้ำ</div>
+            {% endif %}
+        </div>
+
+        <div class="data-section">
+            <h2>🌱 ผลคุณภาพตะกอนดินในแม่น้ำกกและลำน้ำสาขา แม่น้ำสาย แม่น้ำรวก และแม่น้ำโขง</h2>
+            
+            {% if soil_data and soil_data.pivot %}
+            <div class="chart-container">
+                <div class="parameter-selector">
+                    <select id="soil-parameter-select">
+                        <option value="">เลือกสารที่ตรวจเพื่อดูกราฟ</option>
+                        {% for row in soil_data.pivot_list %}
+                        <option value="{{ row.parameter }}">{{ row.parameter }}</option>
+                        {% endfor %}
+                    </select>
+                    <button class="chart-toggle" id="soil-chart-toggle" style="display: none;">แสดงกราฟ</button>
+                </div>
+                <div id="soil-chart-container" style="display: none;">
+                    <div class="chart-wrapper">
+                        <canvas id="soilChart"></canvas>
+                    </div>
+                    <div style="color: #dc3545; font-weight: 600; margin-top: 10px; padding: 10px; background-color: #fff5f5; border-left: 4px solid #dc3545; border-radius: 4px;">
+                        ⚠️ กรณีที่กราฟแสดงเป็น 0 เนื่องจากค่าน้อยกว่าที่ห้องปฏิบัติการสามารถอ่านผลได้ ให้ดูจากผลในตารางเป็นหลัก
+                    </div>
+                </div>
+            </div>
+            <div class="data-table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>สารที่ตรวจ</th>
+                            {% for check_num in soil_data.check_numbers %}
+                            <th>ครั้งที่ {{ check_num }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in soil_data.pivot_list %}
+                        <tr>
+                            <td style="font-weight: 600; background: #f8f9fa;">{{ row.parameter }}</td>
+                            {% for check_num in soil_data.check_numbers %}
+                            <td>
+                                {% set check_str = check_num|string %}
+                                {% if check_str in row.check_values %}
+                                    {% set val = row.check_values[check_str] %}
+                                    {% if val %}
+                                        {{ val }}
+                                    {% else %}
+                                        <span style="color: #ccc;">-</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span style="color: #ccc;">-</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px; font-size: 14px; line-height: 1.8;">
+                <strong>กรมควบคุมมลพิษ</strong> ได้ดำเนินตรวจวัดและเก็บตัวอย่างตะกอนดินในแม่น้ำกกและลำน้ำสาขา แม่น้ำสาย แม่น้ำรวก และแม่น้ำโขง ระหว่างเดือนมีนาคมถึงเดือนกันยายน 2568 ดังนี้<br><br>
+                ▪ ครั้งที่ 1 เมื่อวันที่ 19 - 24 มีนาคม 2568 และวันที่ 9 เมษายน 2568<br>
+                ▪ ครั้งที่ 2 เมื่อวันที่ 21 - 24 เมษายน 2568 และวันที่ 29 เมษายน - 2 พฤษภาคม 2568<br>
+                ▪ ครั้งที่ 3 เมื่อวันที่ 26 - 30 พฤษภาคม 2568<br>
+                ▪ ครั้งที่ 4 เมื่อวันที่ 23 - 27 มิถุนายน 2568<br>
+                ▪ ครั้งที่ 5 เมื่อวันที่ 21 - 25 กรกฎาคม 2568<br>
+                ▪ ครั้งที่ 6 เมื่อวันที่ 18 – 22 สิงหาคม 2568<br>
+                ▪ ครั้งที่ 7 เมื่อวันที่ 22 – 26 กันยายน 2568
+            </div>
+            {% else %}
+            <div class="no-data">ไม่มีข้อมูลคุณภาพดิน</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        // Water data from backend
+        const waterData = {{ water_data|tojson }};
+        const soilData = {{ soil_data|tojson }};
+        
+        let waterChart = null;
+        let soilChart = null;
+
+        function filterDataForChart(numeric_values, check_numbers) {
+            // Use numeric_values column from backend (ND, -, < are already set to 0)
+            const filteredData = [];
+            const filteredLabels = [];
+            
+            for (const checkNum of check_numbers) {
+                const checkStr = checkNum.toString();
+                const numValue = numeric_values[checkStr];
+                
+                // Use numeric value directly (0 for ND, -, <)
+                // Ensure it's a number, not string
+                if (numValue !== undefined && numValue !== null) {
+                    const num = typeof numValue === 'number' ? numValue : parseFloat(numValue);
+                    if (!isNaN(num)) {
+                        filteredData.push(num);
+                        filteredLabels.push(`ครั้งที่ ${checkNum}`);
+                    }
+                }
+            }
+            
+            return { data: filteredData, labels: filteredLabels };
+        }
+
+        function createWaterChart(parameter) {
+            // Use filtered dataframe for chart
+            const row = waterData.pivot_list_filtered.find(r => r.parameter === parameter);
+            if (!row) {
+                alert('ไม่พบข้อมูลที่กรองแล้วสำหรับ ' + parameter);
+                return;
+            }
+
+            // Check if row has numeric_values
+            if (!row.numeric_values || Object.keys(row.numeric_values).length === 0) {
+                alert('ไม่มีข้อมูลที่สามารถแสดงกราฟได้');
+                return;
+            }
+
+            // Debug: Check numeric_values
+            console.log('Row:', row);
+            console.log('numeric_values:', row.numeric_values);
+            console.log('Sample values:', Object.values(row.numeric_values).slice(0, 5));
+
+            const chartData = filterDataForChart(row.numeric_values, waterData.check_numbers);
+            
+            console.log('Chart data:', chartData);
+            
+            if (chartData.data.length === 0) {
+                alert('ไม่มีข้อมูลที่สามารถแสดงกราฟได้');
+                return;
+            }
+
+            const ctx = document.getElementById('waterChart').getContext('2d');
+            
+            if (waterChart) {
+                waterChart.destroy();
+            }
+
+            waterChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        label: `${parameter} (${row.unit})`,
+                        data: chartData.data,
+                        borderColor: 'rgb(102, 126, 234)',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        title: {
+                            display: true,
+                            text: `กราฟแสดงค่าของ ${parameter}`,
+                            font: {
+                                size: 16
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: `ค่า (${row.unit})`
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'ครั้งที่ตรวจ'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createSoilChart(parameter) {
+            // Use filtered dataframe for chart
+            const row = soilData.pivot_list_filtered.find(r => r.parameter === parameter);
+            if (!row) {
+                alert('ไม่พบข้อมูลที่กรองแล้วสำหรับ ' + parameter);
+                return;
+            }
+
+            // Check if row has numeric_values
+            if (!row.numeric_values || Object.keys(row.numeric_values).length === 0) {
+                alert('ไม่มีข้อมูลที่สามารถแสดงกราฟได้');
+                return;
+            }
+
+            const chartData = filterDataForChart(row.numeric_values, soilData.check_numbers);
+            
+            if (chartData.data.length === 0) {
+                alert('ไม่มีข้อมูลที่สามารถแสดงกราฟได้');
+                return;
+            }
+
+            const ctx = document.getElementById('soilChart').getContext('2d');
+            
+            if (soilChart) {
+                soilChart.destroy();
+            }
+
+            soilChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        label: parameter,
+                        data: chartData.data,
+                        borderColor: 'rgb(118, 75, 162)',
+                        backgroundColor: 'rgba(118, 75, 162, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        title: {
+                            display: true,
+                            text: `กราฟแสดงค่าของ ${parameter}`,
+                            font: {
+                                size: 16
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: 'ค่า'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'ครั้งที่ตรวจ'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Wait for Chart.js to load
+        function initCharts() {
+            if (typeof Chart === 'undefined') {
+                console.error('Chart.js is not loaded');
+                return;
+            }
+
+            // Water chart handlers
+            const waterParamSelect = document.getElementById('water-parameter-select');
+            const waterChartToggle = document.getElementById('water-chart-toggle');
+            const waterChartContainer = document.getElementById('water-chart-container');
+
+            if (waterParamSelect) {
+                waterParamSelect.addEventListener('change', function() {
+                    if (this.value) {
+                        waterChartToggle.style.display = 'inline-block';
+                        waterChartToggle.classList.remove('active');
+                        waterChartContainer.style.display = 'none';
+                        if (waterChart) {
+                            waterChart.destroy();
+                            waterChart = null;
+                        }
+                    } else {
+                        waterChartToggle.style.display = 'none';
+                        waterChartContainer.style.display = 'none';
+                    }
+                });
+
+                waterChartToggle.addEventListener('click', function() {
+                    if (waterParamSelect.value) {
+                        if (this.classList.contains('active')) {
+                            this.classList.remove('active');
+                            this.textContent = 'แสดงกราฟ';
+                            waterChartContainer.style.display = 'none';
+                        } else {
+                            this.classList.add('active');
+                            this.textContent = 'ซ่อนกราฟ';
+                            waterChartContainer.style.display = 'block';
+                            createWaterChart(waterParamSelect.value);
+                        }
+                    }
+                });
+            }
+
+            // Soil chart handlers
+            const soilParamSelect = document.getElementById('soil-parameter-select');
+            const soilChartToggle = document.getElementById('soil-chart-toggle');
+            const soilChartContainer = document.getElementById('soil-chart-container');
+
+            if (soilParamSelect) {
+                soilParamSelect.addEventListener('change', function() {
+                    if (this.value) {
+                        soilChartToggle.style.display = 'inline-block';
+                        soilChartToggle.classList.remove('active');
+                        soilChartContainer.style.display = 'none';
+                        if (soilChart) {
+                            soilChart.destroy();
+                            soilChart = null;
+                        }
+                    } else {
+                        soilChartToggle.style.display = 'none';
+                        soilChartContainer.style.display = 'none';
+                    }
+                });
+
+                soilChartToggle.addEventListener('click', function() {
+                    if (soilParamSelect.value) {
+                        if (this.classList.contains('active')) {
+                            this.classList.remove('active');
+                            this.textContent = 'แสดงกราฟ';
+                            soilChartContainer.style.display = 'none';
+                        } else {
+                            this.classList.add('active');
+                            this.textContent = 'ซ่อนกราฟ';
+                            soilChartContainer.style.display = 'block';
+                            createSoilChart(soilParamSelect.value);
+                        }
+                    }
+                });
+            }
+        }
+
+        // Initialize when DOM is ready and Chart.js is loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                if (typeof Chart !== 'undefined') {
+                    initCharts();
+                } else {
+                    // Wait for Chart.js to load
+                    const checkChart = setInterval(function() {
+                        if (typeof Chart !== 'undefined') {
+                            clearInterval(checkChart);
+                            initCharts();
+                        }
+                    }, 100);
+                }
+            });
+        } else {
+            if (typeof Chart !== 'undefined') {
+                initCharts();
+            } else {
+                // Wait for Chart.js to load
+                const checkChart = setInterval(function() {
+                    if (typeof Chart !== 'undefined') {
+                        clearInterval(checkChart);
+                        initCharts();
+                    }
+                }, 100);
+            }
+        }
+    </script>
+</body>
+</html>
+
